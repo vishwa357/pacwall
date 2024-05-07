@@ -1,6 +1,7 @@
 namespace pacwall
 {
     using pacwall.grid;
+    using pacwall.player;
     using UnityEngine;
 
     public class GameMan : MonoBehaviour
