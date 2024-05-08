@@ -1,15 +1,8 @@
 namespace pacwall.grid
 {
-    using System;
     using System.Collections.Generic;
-    using System.Net.Security;
-    using System.Runtime.InteropServices.WindowsRuntime;
     using System.Text;
-    using Unity.VisualScripting;
-    using Unity.VisualScripting.ReorderableList;
-    using UnityEditor.Callbacks;
     using UnityEngine;
-    using UnityEngine.Rendering;
 
     public class MazeGrid : MonoBehaviour {
         [SerializeField] SpriteRenderer bg;
@@ -56,20 +49,29 @@ namespace pacwall.grid
             ghostPrefab.transform.localScale = offset;
         }
 
+        public bool CheckPos(Vector2Int pos, int itemBits) {
+            return (poss[pos.x, pos.y] & itemBits) > 0;
+        }
+
         public Vector2 GetPos(Vector2Int pos) {
             return new Vector2(scale.x * pos.x, scale.y * pos.y) + zero;
+        }
+
+        public Vector2Int GetPlayerPos() {
+            return lpos;
         }
 
         public Ghost AddGhost() {
             var item = Instantiate(ghostPrefab, ghostPrefab.transform.parent);
             Vector2Int p = Vector2Int.zero;
             while(Vector2Int.Distance(p, lpos) < 6) {
-                p.x = UnityEngine.Random.Range(0, size.x);
-                p.y = UnityEngine.Random.Range(0, size.y);
+                p.x = Random.Range(0, size.x);
+                p.y = Random.Range(0, size.y);
             }
             item.pos = p;
             poss[p.x, p.y] = poss[p.x, p.y] | BlockItem.Ghost;
             item.transform.position = GetPos(p);
+            item.onMove += UpdateGhostPos;
             ghost = item;
             return item;
         }
@@ -94,9 +96,15 @@ namespace pacwall.grid
                 || CheckGhost(new Vector2Int(pos.x-1, pos.y-1), ref set);
         }
 
+        public void UpdateGhostPos(Vector2Int pos, Vector2Int oldPos) {
+            if(oldPos.x >= 0)
+                poss[oldPos.x, oldPos.y] = poss[oldPos.x, oldPos.y] ^ BlockItem.Ghost;
+            poss[pos.x, pos.y] = poss[pos.x, pos.y] | BlockItem.Ghost;
+        }
+
         [SerializeField][TextArea(20, 20)] string dTxt;
 
-        public void AddPlayerPos(Vector2Int pos) {
+        public void UpdatePlayerPos(Vector2Int pos) {
             poss[lpos.x, lpos.y] = poss[lpos.x, lpos.y] ^ BlockItem.Player;
             poss[pos.x, pos.y] = poss[pos.x, pos.y] | BlockItem.Player;
             AddTmpWall(lpos);
@@ -115,7 +123,6 @@ namespace pacwall.grid
                 if(!b)
                     FloodFillWithWall(t);
             }
-
 
             lpos = pos;
 

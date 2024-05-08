@@ -14,7 +14,7 @@ namespace pacwall.player
         [SerializeField] [Range(8, 20)] int speed = 14;
         [SerializeField] SpriteRenderer sr;
 
-        public event Action<Vector2Int> onPlayerMove;
+        public event Action<Vector2Int> onMove;
 
         public enum MoveDirection {
             None,
@@ -83,7 +83,7 @@ namespace pacwall.player
             transform.localPosition = grid.GetPos(pos);
             lastMove = nextMove;
             nextMove = MoveDirection.None;
-            onPlayerMove?.Invoke(pos);
+            onMove?.Invoke(pos);
         }
 
         void OnLeft() {
