@@ -1,5 +1,6 @@
 namespace pacwall.player
 {
+    using System;
     using System.Collections;
     using pacwall.grid;
     using UnityEngine;
@@ -13,6 +14,8 @@ namespace pacwall.player
         [SerializeField] [Range(8, 20)] int speed = 14;
         [SerializeField] SpriteRenderer sr;
 
+        public event Action<Vector2Int> onPlayerMove;
+
         public enum MoveDirection {
             None,
             Left,
@@ -23,7 +26,7 @@ namespace pacwall.player
 
         MoveDirection lastMove, nextMove;
         float moveOffset;
-        [SerializeField] Vector2Int pos;
+        [SerializeField] public Vector2Int pos;
 
         public void Init(MazeGrid grid) {
             this.grid = grid;
@@ -80,6 +83,7 @@ namespace pacwall.player
             transform.localPosition = grid.GetPos(pos);
             lastMove = nextMove;
             nextMove = MoveDirection.None;
+            onPlayerMove?.Invoke(pos);
         }
 
         void OnLeft() {

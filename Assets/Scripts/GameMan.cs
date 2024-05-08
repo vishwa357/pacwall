@@ -1,21 +1,26 @@
 namespace pacwall
 {
+    using JetBrains.Annotations;
     using pacwall.grid;
     using pacwall.player;
     using UnityEngine;
 
-    public class GameMan : MonoBehaviour
-    {
+    public class GameMan : MonoBehaviour {
         [SerializeField] RectTransform gridRef;
         [SerializeField] MazeGrid grid;
         [SerializeField] Player player;
 
-        void Start()
-        {
+        void Start() {
             Vector3[] corners = new Vector3[4];
             gridRef.GetWorldCorners(corners);
-            grid.BuildGrid(22, corners[0], corners[2]);
+            grid.BuildGrid(14, corners[0], corners[2]);
             player.Init(grid);
+            grid.AddPlayerPos(player.pos);
+            player.onPlayerMove += OnPlayerMove;
+        }
+
+        void OnPlayerMove(Vector2Int pos) {
+            grid.AddPlayerPos(pos);
         }
     }
 }
