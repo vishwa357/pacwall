@@ -1,6 +1,5 @@
 namespace pacwall
 {
-    using JetBrains.Annotations;
     using pacwall.grid;
     using pacwall.player;
     using UnityEngine;
@@ -16,6 +15,7 @@ namespace pacwall
             grid.BuildGrid(14, corners[0], corners[2]);
             player.Init(grid);
             grid.AddPlayerPos(player.pos);
+            grid.AddGhost();
             player.onPlayerMove += OnPlayerMove;
         }
 

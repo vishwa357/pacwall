@@ -2,7 +2,11 @@ namespace pacwall.grid
 {
     using System;
     using System.Collections.Generic;
+    using System.Net.Security;
+    using System.Runtime.InteropServices.WindowsRuntime;
     using System.Text;
+    using Unity.VisualScripting;
+    using Unity.VisualScripting.ReorderableList;
     using UnityEditor.Callbacks;
     using UnityEngine;
     using UnityEngine.Rendering;
@@ -11,6 +15,7 @@ namespace pacwall.grid
         [SerializeField] SpriteRenderer bg;
         [SerializeField] Transform wallPrefab;
         [SerializeField] TmpWallItem tmpWallPrefab;
+        [SerializeField] Ghost ghostPrefab;
         [SerializeField] Transform debug0, debug1;
 
         [SerializeField] public Vector2Int size;
@@ -21,12 +26,14 @@ namespace pacwall.grid
         List<Transform> walls = new List<Transform>();
         int[,] poss;
         Vector2Int lpos;    // last player pos
+        Ghost ghost;
 
         public static class BlockItem {
             public const int None = 1,
                     Player = 2,
                     TmpWall = 4,
-                    Wall = 8;
+                    Wall = 8,
+                    Ghost = 16;
         }
 
         public void BuildGrid(int wn, Vector2 bl, Vector2 tr) {
@@ -46,10 +53,45 @@ namespace pacwall.grid
             scale = offset;
             tmpWallPrefab.transform.localScale = offset;
             wallPrefab.localScale = offset;
+            ghostPrefab.transform.localScale = offset;
         }
 
         public Vector2 GetPos(Vector2Int pos) {
             return new Vector2(scale.x * pos.x, scale.y * pos.y) + zero;
+        }
+
+        public Ghost AddGhost() {
+            var item = Instantiate(ghostPrefab, ghostPrefab.transform.parent);
+            Vector2Int p = Vector2Int.zero;
+            while(Vector2Int.Distance(p, lpos) < 6) {
+                p.x = UnityEngine.Random.Range(0, size.x);
+                p.y = UnityEngine.Random.Range(0, size.y);
+            }
+            item.pos = p;
+            poss[p.x, p.y] = poss[p.x, p.y] | BlockItem.Ghost;
+            item.transform.position = GetPos(p);
+            ghost = item;
+            return item;
+        }
+
+        bool CheckGhost(Vector2Int pos, ref HashSet<int> set) {
+            if(pos.x < 0 || pos.x >= size.x || pos.y < 0 || pos.y >= size.y)
+                return false;
+            if(set.Contains(pos.x*64 + pos.y))
+                return false;
+            if((poss[pos.x, pos.y] & BlockItem.Ghost) > 0)
+                return true;
+            if((poss[pos.x, pos.y] & BlockItem.Wall) > 0)
+                return false;
+            set.Add(pos.x*64 + pos.y);  // assuming grid size is less than 64
+            return CheckGhost(new Vector2Int(pos.x-1, pos.y), ref set)
+                || CheckGhost(new Vector2Int(pos.x-1, pos.y+1), ref set)
+                || CheckGhost(new Vector2Int(pos.x, pos.y+1), ref set)
+                || CheckGhost(new Vector2Int(pos.x+1, pos.y+1), ref set)
+                || CheckGhost(new Vector2Int(pos.x+1, pos.y), ref set)
+                || CheckGhost(new Vector2Int(pos.x+1, pos.y-1), ref set)
+                || CheckGhost(new Vector2Int(pos.x, pos.y-1), ref set)
+                || CheckGhost(new Vector2Int(pos.x-1, pos.y-1), ref set);
         }
 
         [SerializeField][TextArea(20, 20)] string dTxt;
@@ -62,7 +104,18 @@ namespace pacwall.grid
             if(CheckWall(pos)) {
                 AddTmpWall(pos);
                 TmpWall2Wall();
+                HashSet<int> set = new HashSet<int>();
+                var t = GetRight(pos, lpos);
+                var b = CheckGhost(t, ref set);
+                if(!b)
+                    FloodFillWithWall(t);
+                set.Clear();
+                t = GetLeft(pos, lpos);
+                b = CheckGhost(t, ref set);
+                if(!b)
+                    FloodFillWithWall(t);
             }
+
 
             lpos = pos;
 
@@ -112,6 +165,38 @@ namespace pacwall.grid
                 return true;
 
             return false;
+        }
+
+        Vector2Int GetLeft(Vector2Int pos, Vector2Int prev) {
+            if(pos.x == prev.x)
+                return new Vector2Int(pos.x - (pos.y - prev.y), pos.y);
+            else
+                return new Vector2Int(pos.x, pos.y + (pos.x - prev.x));
+        }
+
+        Vector2Int GetRight(Vector2Int pos, Vector2Int prev) {
+            if(pos.x == prev.x)
+                return new Vector2Int(pos.x + (pos.y - prev.y), pos.y);
+            else
+                return new Vector2Int(pos.x, pos.y - (pos.x - prev.x));
+        }
+
+        void FloodFillWithWall(Vector2Int pos) {
+            if(pos.x < 0 || pos.x >= size.x || pos.y < 0 || pos.y >= size.y
+                    || (poss[pos.x, pos.y] & BlockItem.Wall) > 0)
+                return;
+            Transform w = Instantiate(wallPrefab, wallPrefab.parent);
+            w.position = GetPos(pos);
+            walls.Add(w);
+            poss[pos.x, pos.y] = poss[pos.x, pos.y] | BlockItem.Wall;
+            FloodFillWithWall(new Vector2Int(pos.x-1, pos.y));
+            FloodFillWithWall(new Vector2Int(pos.x-1, pos.y+1));
+            FloodFillWithWall(new Vector2Int(pos.x, pos.y+1));
+            FloodFillWithWall(new Vector2Int(pos.x+1, pos.y+1));
+            FloodFillWithWall(new Vector2Int(pos.x+1, pos.y));
+            FloodFillWithWall(new Vector2Int(pos.x+1, pos.y-1));
+            FloodFillWithWall(new Vector2Int(pos.x, pos.y-1));
+            FloodFillWithWall(new Vector2Int(pos.x-1, pos.y-1));
         }
 
         void TmpWall2Wall() {
