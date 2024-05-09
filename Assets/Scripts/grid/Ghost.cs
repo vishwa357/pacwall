@@ -48,16 +48,18 @@ namespace pacwall.grid
             Vector2Int dst =  grid.GetPlayerPos();
             Vector2Int diff = dst - pos;
             Vector2Int oldPos = pos;
-            Vector2Int newPos = pos;
-            if(abs(diff.x) > abs(diff.y))
-                newPos = new (pos.x + (diff.x > 0 ? 1 : -1), pos.y);
-            else if(diff.y != 0)
-                newPos = new (pos.x, pos.y + (diff.y > 0 ? 1 : -1));
-            if(grid.CheckPos(newPos, MazeGrid.BlockItem.Wall | MazeGrid.BlockItem.TmpWall))
+            Vector2Int newpx = diff.x == 0 ? pos : new (pos.x + (diff.x > 0 ? 1 : -1), pos.y);
+            Vector2Int newpy = diff.y == 0 ? pos : new (pos.x, pos.y + (diff.y > 0 ? 1 : -1));
+            Vector2Int newp = pos;
+            if(abs(diff.x) > abs(diff.y) && !grid.CheckPos(newpx, MazeGrid.BlockItem.Wall | MazeGrid.BlockItem.Ghost))
+                newp = newpx;
+            else if(newpy != pos && !grid.CheckPos(newpy, MazeGrid.BlockItem.Wall | MazeGrid.BlockItem.Ghost))
+                newp = newpy;
+            else
                 return;
-            pos = newPos;
+            pos = newp;
             transform.position = grid.GetPos(pos);
-            if(grid.CheckPos(newPos, MazeGrid.BlockItem.Player))
+            if(grid.CheckPos(newpx, MazeGrid.BlockItem.Player | MazeGrid.BlockItem.TmpWall))
                 onPlayerHit?.Invoke();
             else
                 onMove?.Invoke(pos, oldPos);

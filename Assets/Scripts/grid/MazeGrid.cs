@@ -205,6 +205,8 @@ namespace pacwall.grid
                     w.position = tmpWalls[i].transform.position;
                     walls.Add(w);
                 }
+                if((poss[v.x, v.y] & BlockItem.TmpWall) > 0)
+                    poss[v.x, v.y] = poss[v.x, v.y] ^ BlockItem.TmpWall;
                 poss[v.x, v.y] = poss[v.x, v.y] | BlockItem.Wall;
                 Destroy(tmpWalls[i].gameObject);
             }

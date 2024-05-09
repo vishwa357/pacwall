@@ -15,6 +15,7 @@ namespace pacwall
         [SerializeField] GameUI gameUI;
         [SerializeField] [Range(1, 5)] int powerUpTime;
         [SerializeField] [Range(0, 5)] int powerUpOffsetTime;
+        [SerializeField] [Range(1, 4)] int ghostCount;
         List<Ghost> ghosts = new List<Ghost>();
         Vector2Int powerUpPos = new Vector2Int(-1, -1);
         bool isPlaying = false;
@@ -28,7 +29,8 @@ namespace pacwall
             grid.UpdatePlayerPos(player.pos);
             ghostPrefab.transform.localScale = grid.scale;
             powerUp.localScale = grid.scale;
-            ghosts.Add(CreateGhost());
+            for(int i=0; i<ghostCount; i++)
+                ghosts.Add(CreateGhost());
             player.onMove += OnPlayerMove;
             gameUI.onRestart += OnGameRestart;
             isPlaying = true;
@@ -72,7 +74,7 @@ namespace pacwall
             Vector2Int p = Vector2Int.zero;
             var lpos = player.pos;
             var size = grid.size;
-            while(Vector2Int.Distance(p, lpos) < 6) {
+            while(Vector2Int.Distance(p, lpos) < 10 || grid.CheckPos(p, MazeGrid.BlockItem.Ghost)) {
                 p.x = Random.Range(0, size.x);
                 p.y = Random.Range(0, size.y);
             }
