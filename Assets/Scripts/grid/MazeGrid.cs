@@ -112,10 +112,18 @@ namespace pacwall.grid
             StringBuilder sb = new StringBuilder(size.x*size.y + size.x);
             for(int i=0; i<size.y; i++) {
                 for(int j=0; j<size.x; j++)
-                    sb.Append(" " + (poss[j, size.y-i-1] & BlockItem.TmpWall).ToString());
+                    sb.Append(" " + (poss[j, size.y-i-1] & BlockItem.TmpWall).ToString("##"));
                 sb.Append("\n");
             }
             dTxt = sb.ToString();
+        }
+
+        public void AddPowerUpPos(Vector2Int pos) {
+            poss[pos.x, pos.y] = poss[pos.x, pos.y] | BlockItem.PowerUp;
+        }
+
+        public void RemovePowerUpPos(Vector2Int pos) {
+            poss[pos.x, pos.y] = poss[pos.x, pos.y] & (BlockItem.PowerUp ^ int.MaxValue);
         }
 
         void AddTmpWall(Vector2Int pos) {

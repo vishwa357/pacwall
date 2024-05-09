@@ -7,18 +7,30 @@ namespace pacwall.grid
 
     public class Ghost : MonoBehaviour {
         [SerializeField] [Range(8, 20)] int speed;
+        [SerializeField] [Range(8, 20)] int slowSpeed = 1;
+        [SerializeField] [Range(8, 20)] int slowDuration = 3;
 
         public Vector2Int pos;
         public event Action onPlayerHit;
         public event Action<Vector2Int, Vector2Int> onMove;
 
-        float timeOffset;
+        [SerializeField] float timeOffset;
         MazeGrid grid;
         
         public void Init(MazeGrid grid) {
             this.grid = grid;
             timeOffset = 1/(float)speed;
             StartCoroutine(MoveCoroutine());
+        }
+
+        public void SlowDown() {
+            timeOffset = slowSpeed == 0 ? 0 : 1/(float)slowSpeed;
+            StartCoroutine(RecoverSpeed());
+        }
+
+        IEnumerator RecoverSpeed() {
+            yield return new WaitForSeconds(slowDuration);
+            timeOffset = 1/(float)speed;
         }
 
         void OnDestroy() {
