@@ -8,7 +8,6 @@ namespace pacwall.grid
         [SerializeField] SpriteRenderer bg;
         [SerializeField] Transform wallPrefab;
         [SerializeField] TmpWallItem tmpWallPrefab;
-        [SerializeField] Ghost ghostPrefab;
         [SerializeField] Transform debug0, debug1;
 
         [SerializeField] public Vector2Int size;
@@ -19,14 +18,14 @@ namespace pacwall.grid
         List<Transform> walls = new List<Transform>();
         int[,] poss;
         Vector2Int lpos;    // last player pos
-        Ghost ghost;
 
         public static class BlockItem {
             public const int None = 1,
                     Player = 2,
                     TmpWall = 4,
                     Wall = 8,
-                    Ghost = 16;
+                    Ghost = 16,
+                    PowerUp = 32;
         }
 
         public void BuildGrid(int wn, Vector2 bl, Vector2 tr) {
@@ -46,7 +45,6 @@ namespace pacwall.grid
             scale = offset;
             tmpWallPrefab.transform.localScale = offset;
             wallPrefab.localScale = offset;
-            ghostPrefab.transform.localScale = offset;
         }
 
         public bool CheckPos(Vector2Int pos, int itemBits) {
@@ -59,21 +57,6 @@ namespace pacwall.grid
 
         public Vector2Int GetPlayerPos() {
             return lpos;
-        }
-
-        public Ghost AddGhost() {
-            var item = Instantiate(ghostPrefab, ghostPrefab.transform.parent);
-            Vector2Int p = Vector2Int.zero;
-            while(Vector2Int.Distance(p, lpos) < 6) {
-                p.x = Random.Range(0, size.x);
-                p.y = Random.Range(0, size.y);
-            }
-            item.pos = p;
-            poss[p.x, p.y] = poss[p.x, p.y] | BlockItem.Ghost;
-            item.transform.position = GetPos(p);
-            item.onMove += UpdateGhostPos;
-            ghost = item;
-            return item;
         }
 
         bool CheckGhost(Vector2Int pos, ref HashSet<int> set) {

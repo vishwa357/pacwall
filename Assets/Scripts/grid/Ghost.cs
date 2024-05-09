@@ -6,6 +6,8 @@ namespace pacwall.grid
     using static Unity.Mathematics.math;
 
     public class Ghost : MonoBehaviour {
+        [SerializeField] [Range(8, 20)] int speed;
+
         public Vector2Int pos;
         public event Action onPlayerHit;
         public event Action<Vector2Int, Vector2Int> onMove;
@@ -13,7 +15,7 @@ namespace pacwall.grid
         float timeOffset;
         MazeGrid grid;
         
-        public void Init(MazeGrid grid, int speed) {
+        public void Init(MazeGrid grid) {
             this.grid = grid;
             timeOffset = 1/(float)speed;
             StartCoroutine(MoveCoroutine());
