@@ -1,11 +1,14 @@
 namespace pacwall.player
 {
     using System;
+    using Unity.VisualScripting;
     using UnityEngine;
+    using static Unity.Mathematics.math;
 
     public class PlayerInput : MonoBehaviour
     {
         [SerializeField] ButtonCustomTrigger btnLeft, btnUp, btnRight, btnDown;
+        [SerializeField] Joystick joystick;
 
         public event Action onLeft, onUp, onRight, onDown;
 
@@ -25,6 +28,23 @@ namespace pacwall.player
                 onRight?.Invoke();
             if(Input.GetKey(KeyCode.DownArrow))
                 onDown?.Invoke();
+
+            Vector2 jd = joystick.Direction;
+            Vector2 ajd = abs(jd);
+            if(ajd.x > 0.5 || ajd.y > 0.5) {
+                if(ajd.x > ajd.y) {
+                    if(jd.x > 0)
+                        onRight?.Invoke();
+                    else
+                        onLeft?.Invoke();
+                }
+                else {
+                    if(jd.y > 0)
+                        onUp?.Invoke();
+                    else
+                        onDown?.Invoke();
+                }
+            }
         }
     }
 }

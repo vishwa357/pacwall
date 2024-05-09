@@ -22,6 +22,7 @@ namespace pacwall
         float powerupHideTime = -1, powerUpShowTime = -1;
 
         void Start() {
+            Time.timeScale = 1;
             Vector3[] corners = new Vector3[4];
             gridRef.GetWorldCorners(corners);
             grid.BuildGrid(14, corners[0], corners[2]);
