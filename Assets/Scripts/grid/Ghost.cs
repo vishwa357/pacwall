@@ -45,7 +45,7 @@ namespace pacwall.grid
         }
 
         void Update() {
-            if(isPlaying && Time.timeSinceLevelLoad > nextUpdate) {
+            if(frameCounter <= totalFrames && Time.timeSinceLevelLoad > nextUpdate) {
                 transform.position = Vector2.Lerp(lastPos, nextPos, frameCounter++/(float)totalFrames);
                 nextUpdate = Time.timeSinceLevelLoad + frameOffset;
             }

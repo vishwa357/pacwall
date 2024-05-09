@@ -65,19 +65,22 @@ namespace pacwall
             Debug.Log("OnGhostHitPlayer");
             isPlaying = false;
             gameUI.Show("Fail !!");
-            Destroy(player);
-            foreach(var g in ghosts)
-                g.Stop();
+            Stop();
         }
 
         void OnProgress(int progress) {
             gameUI.UpdateProgres(progress*10/8);
             if(progress >= 80) {
                 gameUI.Show("Pass !!");
-                Destroy(player);
-                foreach(var g in ghosts)
-                    g.Stop();
+                Stop();
             }
+        }
+
+        void Stop() {
+            Time.timeScale = 0.2f;
+            Destroy(player);
+            foreach(var g in ghosts)
+                g.Stop();
         }
 
         Ghost CreateGhost() {
