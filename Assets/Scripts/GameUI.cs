@@ -1,6 +1,7 @@
 namespace pacwall
 {
     using System;
+    using TMPro;
     using UnityEngine;
     using UnityEngine.UI;
 
@@ -8,6 +9,8 @@ namespace pacwall
     {
         [SerializeField] GameObject gamePanel;
         [SerializeField] Button btnRestart;
+        [SerializeField] Image progressFill;
+        [SerializeField] TMP_Text msgtxt;
         
         public event Action onRestart;
 
@@ -15,7 +18,12 @@ namespace pacwall
             btnRestart.onClick.AddListener(() => onRestart?.Invoke());
         }
 
-        public void Activate() {
+        public void UpdateProgres(int n) {
+            progressFill.fillAmount = n/100f;
+        }
+
+        public void Show(string msg) {
+            msgtxt.text = msg;
             gamePanel.SetActive(true);
         }
 

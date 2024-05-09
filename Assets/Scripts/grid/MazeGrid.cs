@@ -1,5 +1,6 @@
 namespace pacwall.grid
 {
+    using System;
     using System.Collections.Generic;
     using System.Text;
     using UnityEngine;
@@ -18,6 +19,7 @@ namespace pacwall.grid
         List<Transform> walls = new List<Transform>();
         int[,] poss;
         Vector2Int lpos;    // last player pos
+        int totalCount;
 
         public static class BlockItem {
             public const int None = 1,
@@ -27,6 +29,8 @@ namespace pacwall.grid
                     Ghost = 16,
                     PowerUp = 32;
         }
+
+        public event Action<int> onProgress;
 
         public void BuildGrid(int wn, Vector2 bl, Vector2 tr) {
             debug0.position = bl;
@@ -42,6 +46,7 @@ namespace pacwall.grid
             zero = bl + offset/2;
 
             poss = new int[wn, hn];
+            totalCount = wn*hn;
             scale = offset;
             tmpWallPrefab.transform.localScale = offset;
             wallPrefab.localScale = offset;
@@ -80,8 +85,9 @@ namespace pacwall.grid
         }
 
         public void UpdateGhostPos(Vector2Int pos, Vector2Int oldPos) {
+            Debug.Log("ghost pos, old: " + oldPos + ", new: " + pos);
             if(oldPos.x >= 0)
-                poss[oldPos.x, oldPos.y] = poss[oldPos.x, oldPos.y] ^ BlockItem.Ghost;
+                poss[oldPos.x, oldPos.y] = poss[oldPos.x, oldPos.y] & (~BlockItem.Ghost);
             poss[pos.x, pos.y] = poss[pos.x, pos.y] | BlockItem.Ghost;
         }
 
@@ -106,13 +112,12 @@ namespace pacwall.grid
                 if(!b)
                     FloodFillWithWall(t);
             }
-
             lpos = pos;
 
             StringBuilder sb = new StringBuilder(size.x*size.y + size.x);
             for(int i=0; i<size.y; i++) {
                 for(int j=0; j<size.x; j++)
-                    sb.Append(" " + (poss[j, size.y-i-1] & BlockItem.TmpWall).ToString("##"));
+                    sb.Append(" " + poss[j, size.y-i-1].ToString("00"));
                 sb.Append("\n");
             }
             dTxt = sb.ToString();
@@ -211,6 +216,7 @@ namespace pacwall.grid
                 Destroy(tmpWalls[i].gameObject);
             }
             tmpWalls.Clear();
+            onProgress?.Invoke(walls.Count*100/totalCount);
         }
     }
 }

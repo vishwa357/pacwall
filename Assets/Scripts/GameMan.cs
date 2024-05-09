@@ -33,6 +33,7 @@ namespace pacwall
                 ghosts.Add(CreateGhost());
             player.onMove += OnPlayerMove;
             gameUI.onRestart += OnGameRestart;
+            grid.onProgress += OnProgress;
             isPlaying = true;
         }
 
@@ -52,6 +53,7 @@ namespace pacwall
         }
 
         void OnPlayerMove(Vector2Int pos) {
+            Debug.Log("update player pos: " + pos);
             grid.UpdatePlayerPos(pos);
             if(grid.CheckPos(pos, MazeGrid.BlockItem.Ghost))
                 OnGhostHitPlayer();
@@ -60,16 +62,23 @@ namespace pacwall
         }
 
         void OnGhostHitPlayer() {
+            Debug.Log("OnGhostHitPlayer");
             isPlaying = false;
-            gameUI.Activate();
+            gameUI.Show("Fail!!");
             Destroy(player);
             foreach(var g in ghosts)
-                Destroy(g);
+                g.Stop();
+        }
+
+        void OnProgress(int progress) {
+            gameUI.UpdateProgres(progress*10/8);
+            if(progress >= 80)
+                gameUI.Show("Pass!!");
         }
 
         Ghost CreateGhost() {
             var item = Instantiate(ghostPrefab, ghostPrefab.transform.parent);
-            item.Init(grid);
+            item.gameObject.SetActive(true);
             item.onPlayerHit += OnGhostHitPlayer;
             Vector2Int p = Vector2Int.zero;
             var lpos = player.pos;
@@ -78,10 +87,10 @@ namespace pacwall
                 p.x = Random.Range(0, size.x);
                 p.y = Random.Range(0, size.y);
             }
-            item.pos = p;
-            grid.UpdateGhostPos(p, new Vector2Int(-1, -1));
-            item.transform.position = grid.GetPos(p);
             item.onMove += grid.UpdateGhostPos;
+            grid.UpdateGhostPos(p, new Vector2Int(-1, -1));
+            item.pos = p;
+            item.Init(grid);
             return item;
         }
 
