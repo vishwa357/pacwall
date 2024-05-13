@@ -17,10 +17,19 @@ namespace pacwall.grid
         Vector2 zero;
         List<TmpWallItem> tmpWalls = new List<TmpWallItem>();
         List<Transform> walls = new List<Transform>();
+        /// <summary>
+        /// Whole grid with item masks
+        /// </summary>
         int[,] poss;
-        Vector2Int lpos;    // last player pos
+        /// <summary>
+        /// Last player position
+        /// </summary>
+        Vector2Int lpos;
         int totalCount;
 
+        /// <summary>
+        /// Different block items as different powers to 2 to supported checking using masking
+        /// </summary>
         public static class BlockItem {
             public const int None = 1,
                     Player = 2,
@@ -30,12 +39,22 @@ namespace pacwall.grid
                     PowerUp = 32;
         }
 
+        /// <summary>
+        /// Fired on wall creation with total coverage percentage as int
+        /// </summary>
         public event Action<int> onProgress;
 
+        /// <summary>
+        /// Build the grid with specified with and within specified corners
+        /// </summary>
+        /// <param name="wn">width of the grid as number of blocks</param>
+        /// <param name="bl">bottom left corner in world space</param>
+        /// <param name="tr">top right corner in world space</param>
         public void BuildGrid(int wn, Vector2 bl, Vector2 tr) {
             debug0.position = bl;
             debug1.position = tr;
 
+            // define number of vertical blocks and size/scale of each block based on grid space and horizontal number of blocks
             Vector2 vSize = tr-bl;
             int hn = (int)(wn * (vSize.y/vSize.x));
             size = new Vector2Int(wn, hn);
@@ -52,14 +71,29 @@ namespace pacwall.grid
             wallPrefab.localScale = offset;
         }
 
+        /// <summary>
+        /// Check if any of the items are at given position
+        /// </summary>
+        /// <param name="pos">position on grid</param>
+        /// <param name="itemBits">all items Bitwise OR'ed together</param>
+        /// <returns>true if any of the items are at pos, false otherwise</returns>
         public bool CheckPos(Vector2Int pos, int itemBits) {
             return (poss[pos.x, pos.y] & itemBits) > 0;
         }
 
+        /// <summary>
+        /// Get world space position from grid coordinate
+        /// </summary>
+        /// <param name="pos">grid coordinate</param>
+        /// <returns>world space position</returns>
         public Vector2 GetPos(Vector2Int pos) {
             return new Vector2(scale.x * pos.x, scale.y * pos.y) + zero;
         }
 
+        /// <summary>
+        /// Get player's current position in grid coordinate system
+        /// </summary>
+        /// <returns>player's position in grid space</returns>
         public Vector2Int GetPlayerPos() {
             return lpos;
         }
@@ -84,6 +118,11 @@ namespace pacwall.grid
                 || CheckGhost(new Vector2Int(pos.x-1, pos.y-1), ref set);
         }
 
+        /// <summary>
+        /// Remove ghost on old position and add on new position
+        /// </summary>
+        /// <param name="pos">new position</param>
+        /// <param name="oldPos">old position</param>
         public void UpdateGhostPos(Vector2Int pos, Vector2Int oldPos) {
             if(oldPos.x >= 0)
                 poss[oldPos.x, oldPos.y] = poss[oldPos.x, oldPos.y] & (~BlockItem.Ghost);
@@ -92,20 +131,27 @@ namespace pacwall.grid
 
         [SerializeField][TextArea(20, 20)] string dTxt;
 
+        /// <summary>
+        /// Update player position
+        /// </summary>
+        /// <param name="pos">new position in grid space</param>
         public void UpdatePlayerPos(Vector2Int pos) {
             poss[lpos.x, lpos.y] = poss[lpos.x, lpos.y] ^ BlockItem.Player;
             poss[pos.x, pos.y] = poss[pos.x, pos.y] | BlockItem.Player;
             AddTmpWall(lpos);
 
-            if(CheckWall(pos)) {
+            if(CheckWall(pos)) {    // check if there exists a neighboring wall or grid edge. If yes, turn temp wall to wall
                 AddTmpWall(pos);
-                TmpWall2Wall();
+                TmpWall2Wall();     // convert to wall
+
+                // Check if there is a ghost on right. If no, fill right side with wall
                 HashSet<int> set = new HashSet<int>();
                 var t = GetRight(pos, lpos);
                 var b = CheckGhost(t, ref set);
                 if(!b)
                     FloodFillWithWall(t);
                 set.Clear();
+                // Check if there is a ghost on left. If no, fill left side with wall
                 t = GetLeft(pos, lpos);
                 b = CheckGhost(t, ref set);
                 if(!b)
@@ -113,6 +159,7 @@ namespace pacwall.grid
             }
             lpos = pos;
 
+            // Print in editor for debug purpose
             StringBuilder sb = new StringBuilder(size.x*size.y + size.x);
             for(int i=0; i<size.y; i++) {
                 for(int j=0; j<size.x; j++)
@@ -122,10 +169,18 @@ namespace pacwall.grid
             dTxt = sb.ToString();
         }
 
+        /// <summary>
+        /// Add power up at position
+        /// </summary>
+        /// <param name="pos">position grid space</param>
         public void AddPowerUpPos(Vector2Int pos) {
             poss[pos.x, pos.y] = poss[pos.x, pos.y] | BlockItem.PowerUp;
         }
 
+        /// <summary>
+        /// Remove power up from position
+        /// </summary>
+        /// <param name="pos">position in grid space</param>
         public void RemovePowerUpPos(Vector2Int pos) {
             poss[pos.x, pos.y] = poss[pos.x, pos.y] & (BlockItem.PowerUp ^ int.MaxValue);
         }
@@ -169,6 +224,12 @@ namespace pacwall.grid
             return false;
         }
 
+        /// <summary>
+        /// get left block
+        /// </summary>
+        /// <param name="pos">current pos</param>
+        /// <param name="prev">previous</param>
+        /// <returns></returns>
         Vector2Int GetLeft(Vector2Int pos, Vector2Int prev) {
             if(pos.x == prev.x)
                 return new Vector2Int(pos.x - (pos.y - prev.y), pos.y);
@@ -176,6 +237,12 @@ namespace pacwall.grid
                 return new Vector2Int(pos.x, pos.y + (pos.x - prev.x));
         }
 
+        /// <summary>
+        /// get right block
+        /// </summary>
+        /// <param name="pos">current pos</param>
+        /// <param name="prev">previous</param>
+        /// <returns></returns>
         Vector2Int GetRight(Vector2Int pos, Vector2Int prev) {
             if(pos.x == prev.x)
                 return new Vector2Int(pos.x + (pos.y - prev.y), pos.y);

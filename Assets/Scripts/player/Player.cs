@@ -5,6 +5,9 @@ namespace pacwall.player
     using pacwall.grid;
     using UnityEngine;
 
+    /// <summary>
+    /// Player/Pacman script. This controls player/pacman movement and fires onMove on each movement.
+    /// </summary>
     public class Player : MonoBehaviour
     {
         MazeGrid grid;
@@ -14,8 +17,14 @@ namespace pacwall.player
         [SerializeField] [Range(8, 20)] int speed = 14;
         [SerializeField] SpriteRenderer sr;
 
+        /// <summary>
+        /// This event is fired on each movement
+        /// </summary>
         public event Action<Vector2Int> onMove;
 
+        /// <summary>
+        /// Enums to make for movement directions
+        /// </summary>
         public enum MoveDirection {
             None,
             Left,
@@ -26,8 +35,15 @@ namespace pacwall.player
 
         MoveDirection lastMove, nextMove;
         float moveOffset;
+        /// <summary>
+        /// Current coordinate on grid
+        /// </summary>
         [SerializeField] public Vector2Int pos;
 
+        /// <summary>
+        /// Intialize Player/pacman. This requires reference to MazeGrid.
+        /// </summary>
+        /// <param name="grid"></param>
         public void Init(MazeGrid grid) {
             this.grid = grid;
             transform.localScale = grid.scale;

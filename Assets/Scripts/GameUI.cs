@@ -5,6 +5,9 @@ namespace pacwall
     using UnityEngine;
     using UnityEngine.UI;
 
+    /// <summary>
+    /// For in live progress ui and game over panel.
+    /// </summary>
     public class GameUI : MonoBehaviour
     {
         [SerializeField] GameObject gamePanel;
@@ -18,15 +21,26 @@ namespace pacwall
             btnRestart.onClick.AddListener(() => onRestart?.Invoke());
         }
 
+        /// <summary>
+        /// Update progress of the game.
+        /// </summary>
+        /// <param name="n"></param>
         public void UpdateProgres(int n) {
             progressFill.fillAmount = n/100f;
         }
 
+        /// <summary>
+        /// Show gameover panel with a message
+        /// </summary>
+        /// <param name="msg"></param>
         public void Show(string msg) {
             msgtxt.text = msg;
             gamePanel.SetActive(true);
         }
 
+        /// <summary>
+        /// Hide gameover panel ()
+        /// </summary>
         public void Deactivate() {
             gamePanel.SetActive(false);
         }

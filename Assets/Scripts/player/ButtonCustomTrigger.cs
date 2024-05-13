@@ -3,6 +3,10 @@ namespace pacwall.player {
     using UnityEngine;
     using UnityEngine.EventSystems;
 
+    /// <summary>
+    /// This class fires on pointer down (unlike regular buttons that fire on pointer up)
+    /// </summary>
+    [Obsolete("Use Joystick for gesture based movement instead")]
     class ButtonCustomTrigger : MonoBehaviour, IPointerDownHandler, IPointerUpHandler {
         bool _isDown = false;
         public event Action onTrigger;

@@ -6,6 +6,9 @@ namespace pacwall
     using UnityEngine;
     using UnityEngine.SceneManagement;
 
+    /// <summary>
+    /// Game manager. Takes care of normal routine activities across game's lifecycle - start, restart, gameover, etc.
+    /// </summary>
     public class GameMan : MonoBehaviour {
         [SerializeField] RectTransform gridRef;
         [SerializeField] MazeGrid grid;
@@ -86,6 +89,10 @@ namespace pacwall
                 g.Stop();
         }
 
+        /// <summary>
+        /// Initialize fast ghost
+        /// </summary>
+        /// <param name="ghost"></param>
         void UpdateGhost(Ghost ghost) {
             ghost.onPlayerHit += OnGhostHitPlayer;
             Vector2Int p = Vector2Int.zero;
@@ -101,6 +108,10 @@ namespace pacwall
             ghost.Init(grid);
         }
 
+        /// <summary>
+        /// Instantiate and initialize slow ghosts
+        /// </summary>
+        /// <returns></returns>
         Ghost CreateGhost() {
             var item = Instantiate(ghostPrefab, ghostPrefab.transform.parent);
             item.gameObject.SetActive(true);
@@ -147,7 +158,7 @@ namespace pacwall
             return pos;
         }
 
-        public void OnGameRestart() {
+        void OnGameRestart() {
             SceneManager.LoadScene(0);
         }
     }
