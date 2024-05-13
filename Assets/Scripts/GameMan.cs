@@ -10,6 +10,7 @@ namespace pacwall
         [SerializeField] RectTransform gridRef;
         [SerializeField] MazeGrid grid;
         [SerializeField] Player player;
+        [SerializeField] Ghost fastGhost;
         [SerializeField] Ghost ghostPrefab;
         [SerializeField] Transform powerUp;
         [SerializeField] GameUI gameUI;
@@ -30,6 +31,8 @@ namespace pacwall
             grid.UpdatePlayerPos(player.pos);
             ghostPrefab.transform.localScale = grid.scale;
             powerUp.localScale = grid.scale;
+            fastGhost.transform.localScale = grid.scale;
+            UpdateGhost(fastGhost);
             for(int i=0; i<ghostCount; i++)
                 ghosts.Add(CreateGhost());
             player.onMove += OnPlayerMove;
@@ -54,7 +57,6 @@ namespace pacwall
         }
 
         void OnPlayerMove(Vector2Int pos) {
-            Debug.Log("update player pos: " + pos);
             grid.UpdatePlayerPos(pos);
             if(grid.CheckPos(pos, MazeGrid.BlockItem.Ghost))
                 OnGhostHitPlayer();
@@ -63,7 +65,6 @@ namespace pacwall
         }
 
         void OnGhostHitPlayer() {
-            Debug.Log("OnGhostHitPlayer");
             isPlaying = false;
             gameUI.Show("Fail !!");
             Stop();
@@ -82,6 +83,21 @@ namespace pacwall
             Destroy(player);
             foreach(var g in ghosts)
                 g.Stop();
+        }
+
+        void UpdateGhost(Ghost ghost) {
+            ghost.onPlayerHit += OnGhostHitPlayer;
+            Vector2Int p = Vector2Int.zero;
+            var lpos = player.pos;
+            var size = grid.size;
+            while(Vector2Int.Distance(p, lpos) < 10 || grid.CheckPos(p, MazeGrid.BlockItem.Ghost)) {
+                p.x = Random.Range(0, size.x);
+                p.y = Random.Range(0, size.y);
+            }
+            ghost.onMove += grid.UpdateGhostPos;
+            grid.UpdateGhostPos(p, new Vector2Int(-1, -1));
+            ghost.pos = p;
+            ghost.Init(grid);
         }
 
         Ghost CreateGhost() {

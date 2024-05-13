@@ -6,7 +6,7 @@ namespace pacwall.grid
     using static Unity.Mathematics.math;
 
     public class Ghost : MonoBehaviour {
-        [SerializeField] [Range(5, 16)] int speed;
+        [SerializeField] [Range(2, 8)] int speed;
         [SerializeField] [Range(0, 4)] int slowSpeed = 1;
         [SerializeField] [Range(1, 5)] int slowDuration = 3;
 
@@ -23,7 +23,12 @@ namespace pacwall.grid
         Vector2 nextPos, lastPos;
         bool isPlaying = false;
         
+        /// <summary>
+        /// Initialize the ghost
+        /// </summary>
+        /// <param name="grid">MazeGrid reference</param>
         public void Init(MazeGrid grid) {
+            totalFrames = 32/speed;
             this.grid = grid;
             timeOffset = 1/(float)speed;
             frameOffset = timeOffset/totalFrames;
@@ -32,6 +37,9 @@ namespace pacwall.grid
             StartCoroutine(MoveCoroutine());
         }
 
+        /// <summary>
+        /// Slow down the ghost
+        /// </summary>
         public void SlowDown() {
             StopCoroutine(RecoverSpeed());
             timeOffset = slowSpeed == 0 ? 2 : 1/(float)slowSpeed;
@@ -39,6 +47,9 @@ namespace pacwall.grid
             StartCoroutine(RecoverSpeed());
         }
 
+        /// <summary>
+        /// Stop chasing player
+        /// </summary>
         public void Stop() {
             StopAllCoroutines();
             isPlaying = false;
