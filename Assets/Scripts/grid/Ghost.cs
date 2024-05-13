@@ -22,6 +22,7 @@ namespace pacwall.grid
         MazeGrid grid;
         Vector2 nextPos, lastPos;
         bool isPlaying = false;
+        Vector2Int lastPosInt = -Vector2Int.one;
         
         /// <summary>
         /// Initialize the ghost
@@ -29,6 +30,7 @@ namespace pacwall.grid
         /// <param name="grid">MazeGrid reference</param>
         public void Init(MazeGrid grid) {
             totalFrames = 32/speed;
+            slowSpeed = slowSpeed == 0 ? 2 : slowSpeed;
             this.grid = grid;
             timeOffset = 1/(float)speed;
             frameOffset = timeOffset/totalFrames;
@@ -42,7 +44,9 @@ namespace pacwall.grid
         /// </summary>
         public void SlowDown() {
             StopCoroutine(RecoverSpeed());
-            timeOffset = slowSpeed == 0 ? 2 : 1/(float)slowSpeed;
+            totalFrames = 32/speed;
+            timeOffset = 1/(float)slowSpeed;
+            totalFrames = 32/slowSpeed;
             frameOffset = timeOffset/totalFrames;
             StartCoroutine(RecoverSpeed());
         }
@@ -51,6 +55,8 @@ namespace pacwall.grid
         /// Stop chasing player
         /// </summary>
         public void Stop() {
+            totalFrames *= 4;
+            frameCounter *= 4;
             StopAllCoroutines();
             isPlaying = false;
         }
@@ -65,6 +71,7 @@ namespace pacwall.grid
         IEnumerator RecoverSpeed() {
             yield return new WaitForSeconds(slowDuration);
             timeOffset = 1/(float)speed;
+            totalFrames = 32/speed;
         }
 
         void OnDestroy() {
@@ -88,9 +95,11 @@ namespace pacwall.grid
                 newp = newpx;
             else if(newpy != pos && !grid.CheckPos(newpy, MazeGrid.BlockItem.Wall | MazeGrid.BlockItem.Ghost))
                 newp = newpy;
+            else if(lastPosInt.x >= 0 && !grid.CheckPos(lastPosInt, MazeGrid.BlockItem.Wall | MazeGrid.BlockItem.Ghost))
+                newp = lastPosInt;
             else
                 return;
-            Vector2Int oldPos = pos;
+            lastPosInt = pos;
             pos = newp;
             lastPos = nextPos;
             transform.position = lastPos;
@@ -99,7 +108,7 @@ namespace pacwall.grid
             if(grid.CheckPos(pos, MazeGrid.BlockItem.Player | MazeGrid.BlockItem.TmpWall))
                 onPlayerHit?.Invoke();
             else
-                onMove?.Invoke(pos, oldPos);
+                onMove?.Invoke(pos, lastPosInt);
         }
     }
 }

@@ -81,6 +81,7 @@ namespace pacwall
         void Stop() {
             Time.timeScale = 0.2f;
             Destroy(player);
+            fastGhost.Stop();
             foreach(var g in ghosts)
                 g.Stop();
         }
@@ -122,6 +123,7 @@ namespace pacwall
             PowerUpHide();
             powerUpShowTime = Time.timeSinceLevelLoad + powerUpTime;
             powerupHideTime = powerUpShowTime + 1;
+            fastGhost.SlowDown();
             for(int i=0; i<ghosts.Count; i++)
                 ghosts[i].SlowDown();
         }

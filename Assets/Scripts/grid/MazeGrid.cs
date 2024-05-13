@@ -85,7 +85,6 @@ namespace pacwall.grid
         }
 
         public void UpdateGhostPos(Vector2Int pos, Vector2Int oldPos) {
-            Debug.Log("ghost pos, old: " + oldPos + ", new: " + pos);
             if(oldPos.x >= 0)
                 poss[oldPos.x, oldPos.y] = poss[oldPos.x, oldPos.y] & (~BlockItem.Ghost);
             poss[pos.x, pos.y] = poss[pos.x, pos.y] | BlockItem.Ghost;
